@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 using namespace std;
 
@@ -80,8 +81,8 @@ int main() {
     string flightNumber;
     string date;
     int seatsInRow;
-    unordered_map<string,string> seatPrices;
-    unordered_map<string, bool> seatAvailability;
+    map<string,string> seatPrices;
+    map<string, bool> seatAvailability;
 
     string userInput;
     const int MAX_ROWS = 230;
@@ -97,7 +98,7 @@ int main() {
     cout<<"Hi! What you want to do?"<<endl;
     cin>> command;
     cout<<"Enter date and flight number  "<<endl;
-    getline(cin, userInput);
+    cin>> userInput;
 
     if (command == 1){
         //подивитись чи створений цей літак
@@ -135,6 +136,10 @@ int main() {
                     }
                 }
             }
+        }
+        std::cout << "Seat Prices:" << std::endl;
+        for (const auto& pair : seatPrices) {
+            std::cout<< pair.first << "," << pair.second<<" ";
         }
     }
     return 0;
