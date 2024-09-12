@@ -171,7 +171,7 @@ int main() {
     vector<vector<string>> data;
     unordered_map<string, Airplane> airplanes;
     unordered_map<string, string > idTickets;//замінити на словник, один id квиток, інший username і квиток
-    unordered_map<string, string> userTickets;
+    unordered_map<string, vector<Ticket>> userTickets;
     string flightNumber;
     string date;
     const int MAX_ROWS = 230;
@@ -210,8 +210,8 @@ int main() {
                 parts.push_back(item);
             }
             if (parts.size() != 2) {
-                cerr << "Invalid input format. Please use: date,flightNumber" << endl;
-                return 1;
+                cout<< "Invalid input format. Please use: date,flightNumber" << endl;
+                continue;
             }
             date = parts[0];
             flightNumber = parts[1];
@@ -224,7 +224,8 @@ int main() {
                 airplane.print();
                 airplane.printSeatAvailability();
             } else {
-                cerr << "Failed to create airplane information." << endl;
+                cout << "Failed to create airplane information." << endl;
+                continue;
             }
         }
         if (command == 2) {
@@ -239,8 +240,8 @@ int main() {
                 parts.push_back(item);
             }
             if (parts.size() != 4) {
-                cerr << "Invalid input format. Please use: date,flightNumber,seat" << endl;
-                return 1;
+                cout << "Invalid input format. Please use: date,flightNumber,seat" << endl;
+                continue;
             }
             date = parts[0];
             flightNumber = parts[1];
@@ -260,6 +261,7 @@ int main() {
                         string id = ticket.getTicketID();
                         string info = flightNumber+" "+ date+ " "+ seat+ " " + to_string(price)+ "$ " + username;
                         idTickets[id] = info;
+                        userTickets[username].push_back(ticket);
                         //додати квитки по юзернейму
                         cout << "Ticket purchased successfully. Your ticket:\n";
                         ticket.printTicket();
@@ -280,6 +282,19 @@ int main() {
             getline(cin, ticketId);
             if (idTickets.find(ticketId) != idTickets.end()){
                 cout<< idTickets[ticketId]<<endl;
+            }
+        }
+        if (command == 5){
+            cout<<"Enter username: "<<endl;
+            string username;
+            cin.ignore();
+            getline(cin, username);
+            if (userTickets.find(username) != userTickets.end()) {
+                for (const auto& ticket : userTickets[username]) {
+                    ticket.printTicket();
+                }
+            } else {
+                cout << "No tickets found for user: " << username << endl;
             }
         }
     }
