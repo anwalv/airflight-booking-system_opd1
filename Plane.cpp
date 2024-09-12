@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <unordered_map>
+#include <algorithm> // For std::remove_if
 
 using namespace std;
 
@@ -165,7 +166,18 @@ void createAndAddAirplane(const vector<vector<string>>& data, unordered_map<stri
 
     cerr << "No data found for the given date and flight number." << endl;
 }
-
+void returnTicket(string& ticketId, unordered_map<string, string>& idTickets,unordered_map<string, vector<Ticket>>& userTickets, unordered_map<string, Airplane>& airplanes){
+    string ticketInfo = idTickets[ticketId];
+    stringstream ticketStream(ticketInfo);
+    string flightNumber, date, seat, priceStr, username;
+    int price;
+    ticketStream >> flightNumber >> date >> seat >> priceStr >> username;
+    price = stoi(priceStr.substr(0, priceStr.length() - 1));
+    string key = flightNumber + date;
+    Airplane& airplane = airplanes[key];
+    airplane.setSeatAvailability(seat, true);
+    idTickets.erase(ticketId);
+}
 int main() {
     int command = 0;
     vector<vector<string>> data;
@@ -188,11 +200,11 @@ int main() {
 
     cout << "---------------------------------------------------------------------" << endl;
     cout << "                        Hello!\n"
-         <<"1. Check available places. \n"
-         << "2. Buy a ticket.\n"
+         <<"1. Check available places. \n"//
+         << "2. Buy a ticket.\n"//
          << "3. Return ticket.\n"
-         << "4. View the booking info.\n"
-         << "5. View all user tickets.\n"
+         << "4. View the booking info.\n"//
+         << "5. View all user tickets.\n"//
          << "6. View information about booked tickets on a particular flight.\n"
          <<  "7. Exit."<< endl;
     while (command!=7) {
@@ -275,6 +287,40 @@ int main() {
                 cerr << "Failed to create airplane information." << endl;
             }
         }
+        if (command == 3) {
+            cout << "Enter the ticket ID to return: " << endl;
+            string ticketId;
+            cin.ignore();
+            getline(cin, ticketId);
+            auto it = idTickets.find(ticketId);
+            if (it != idTickets.end()) {
+                string ticketInfo = it->second;
+                stringstream ss(ticketInfo);
+                string flightNumber, date, seat, priceStr, username;
+                int price;
+                ss >> flightNumber >> date >> seat >> priceStr >> username;
+                price = stoi(priceStr.substr(0, priceStr.length() - 1));
+                if (userTickets.find(username) != userTickets.end()) {
+                    auto& tickets = userTickets[username];
+                    tickets.erase(remove_if(tickets.begin(), tickets.end(), [&](const Ticket& ticket) {
+                        return ticket.getTicketID() == ticketId;}), tickets.end());//тут я використала чат GPT, бо не знала як видалити в словнику елемент з вектора
+                    idTickets.erase(it);
+                    string key = flightNumber + date;
+                    if (airplanes.find(key) != airplanes.end()) {
+                        Airplane& airplane = airplanes[key];
+                        airplane.setSeatAvailability(seat, true);
+                        cout << "Ticket returned successfully." << endl;
+                    } else {
+                        cerr << "Airplane data not found for the specified flight." << endl;
+                    }
+                } else {
+                    cerr << "No tickets found for user: " << username << endl;
+                }
+            } else {
+                cerr << "Ticket ID not found." << endl;
+            }
+        }
+
         if (command==4){
             cout<<"Enter ticket ID: "<<endl;
             string ticketId;
@@ -292,9 +338,48 @@ int main() {
             if (userTickets.find(username) != userTickets.end()) {
                 for (const auto& ticket : userTickets[username]) {
                     ticket.printTicket();
+                    cout<<"----------------------------------------------------------"<<endl;
                 }
             } else {
                 cout << "No tickets found for user: " << username << endl;
+            }
+        }
+        if (command==6){
+            cout<<"Enter the date and flight number (format: date,flightNumber) to view: " << endl;
+            string userInput;
+            cin.ignore();
+            getline(cin, userInput);
+            stringstream ss(userInput);
+            string item;
+            vector<string> parts;
+            while (getline(ss, item, ',')) {
+                parts.push_back(item);
+            }
+            if (parts.size() != 2) {
+                cout<< "Invalid input format. Please use: date,flightNumber" << endl;
+                continue;
+            }
+            date = parts[0];
+            flightNumber = parts[1];
+            string key = flightNumber + date;
+            if (airplanes.find(key) != airplanes.end()) {
+                cout << "Tickets for flight " << flightNumber << " on " << date << ":" << endl;
+                for (const auto& [id, ticketInfo] : idTickets) {
+                    stringstream ticketStream(ticketInfo);
+                    string ticketFlightNumber, ticketDate, seat, priceStr, username;
+                    int price;
+                    ticketStream >> ticketFlightNumber >> ticketDate >> seat >> priceStr >> username;
+                    price = stoi(priceStr.substr(0, priceStr.length() - 1));
+                    if (ticketFlightNumber == flightNumber && ticketDate == date) {
+                        cout << "Ticket ID: " <<id <<endl;
+                        cout << "Seat: " <<seat <<endl;
+                        cout << "Passenger Name: " <<username<< endl;
+                        cout << "Price: " << price << "$" << endl;
+                        cout << "--------------------------------------" << endl;
+                    }
+                }
+            } else {
+                cout<< "No tickets found for the given flight."<< endl;
             }
         }
     }
