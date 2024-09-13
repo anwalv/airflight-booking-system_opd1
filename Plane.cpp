@@ -4,7 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <unordered_map>
-#include <algorithm> // For std::remove_if
+#include <algorithm>
 
 using namespace std;
 
@@ -166,23 +166,12 @@ void createAndAddAirplane(const vector<vector<string>>& data, unordered_map<stri
 
     cerr << "No data found for the given date and flight number." << endl;
 }
-void returnTicket(string& ticketId, unordered_map<string, string>& idTickets,unordered_map<string, vector<Ticket>>& userTickets, unordered_map<string, Airplane>& airplanes){
-    string ticketInfo = idTickets[ticketId];
-    stringstream ticketStream(ticketInfo);
-    string flightNumber, date, seat, priceStr, username;
-    int price;
-    ticketStream >> flightNumber >> date >> seat >> priceStr >> username;
-    price = stoi(priceStr.substr(0, priceStr.length() - 1));
-    string key = flightNumber + date;
-    Airplane& airplane = airplanes[key];
-    airplane.setSeatAvailability(seat, true);
-    idTickets.erase(ticketId);
-}
+
 int main() {
     int command = 0;
     vector<vector<string>> data;
     unordered_map<string, Airplane> airplanes;
-    unordered_map<string, string > idTickets;//замінити на словник, один id квиток, інший username і квиток
+    unordered_map<string, string > idTickets;
     unordered_map<string, vector<Ticket>> userTickets;
     string flightNumber;
     string date;
@@ -197,7 +186,6 @@ int main() {
         cerr << "Failed to read file." << endl;
         return 1;
     }
-
     cout << "---------------------------------------------------------------------" << endl;
     cout << "                        Hello!\n"
          <<"1. Check available places. \n"//
@@ -207,6 +195,7 @@ int main() {
          << "5. View all user tickets.\n"//
          << "6. View information about booked tickets on a particular flight.\n"
          <<  "7. Exit."<< endl;
+
     while (command!=7) {
         cout << "What do you want to do?" << endl;
         cin >> command;
@@ -371,7 +360,7 @@ int main() {
                     ticketStream >> ticketFlightNumber >> ticketDate >> seat >> priceStr >> username;
                     price = stoi(priceStr.substr(0, priceStr.length() - 1));
                     if (ticketFlightNumber == flightNumber && ticketDate == date) {
-                        cout << "Ticket ID: " <<id <<endl;
+
                         cout << "Seat: " <<seat <<endl;
                         cout << "Passenger Name: " <<username<< endl;
                         cout << "Price: " << price << "$" << endl;
@@ -381,6 +370,9 @@ int main() {
             } else {
                 cout<< "No tickets found for the given flight."<< endl;
             }
+        } else{
+            cout<<"Invalid command!"<<endl;
+            continue;
         }
     }
     return 0;
